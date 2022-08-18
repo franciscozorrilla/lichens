@@ -1,6 +1,8 @@
 # Metabolic modeling of lichen metagenomes
 Lichens are complex symbiotic assemblies of microorganisms. On the 28th of March 2022 we received [22 selected metagenome assembled genomes](https://github.com/franciscozorrilla/lichens/tree/main/data/MAGs) (MAGs) representing 2 metagenomic communities (VT1, X11). Along with @arianccbasile we reconstructed [genome scale metabolic models](https://github.com/franciscozorrilla/lichens/tree/main/data/GEMs) (GEMs) and carried out flux balance analysis (FBA) based simulations for the two lichen communities.
 
+## 📑 Metadata
+
 ```
 Genome	metagenome_ID	metagenomes_sample_name	depth_coverage	completeness	contamination	domain	phylum	order	family	genus	full_taxonomy_bacteria	gram_stain
 private_T1888_metawrap_bin.19	VT1	Platismatia glauca	7.004340898	83.14	0.86	bacteria	Acidobacteriota	Acidobacteriales	Acidobacteriaceae	Tous-C9LFEB	d__Bacteria;p__Acidobacteriota;c__Acidobacteriae;o__Acidobacteriales;f__Acidobacteriaceae;g__Tous-C9LFEB;s__	neg
@@ -50,3 +52,134 @@ All MAGs meet the medium quality (MQ) threshold of completeness ≥ 50% & contam
 X11 appears to be heavily dominated by the fungal species, which shows an ~2-fold increase in the depth of coverage compared to community VT1. Although X11 contains a single Acidobacteriota species, this community member has more than twice the depth of coverage of all Acideobacteriota species in community VT1.
 
 👉 [Coverage](https://github.com/franciscozorrilla/lichens/blob/main/figures/lichen_metadata.pdf)
+
+## 🐛 Bacterial metabolic models
+
+### 1. Get ORF-annotated protein files
+
+```bash
+# get ORF fasta files
+while read file;do 
+	prodigal -i $file -a ../protein/${file%.*}.faa;
+done < <(ls|grep fa)
+```
+
+### 2. Generate models without any media-based gapfilling, using the gram negative template
+
+```bash
+# get GEMs w/o gapfilling gramneg model
+while read file;do 
+	carve -v --fbc2 -u gramneg -o gramneg_nogf/$(basename ${file%.*}.xml) $file; 
+done< <(ls protein/*.faa);
+```
+
+### 3. Organize models into sample specific folders
+
+```bash
+# move X11 species into folder
+while read sample;do 
+	mv ${sample}.xml X11/;
+done< <(less ../lichen_metadata_metaGEM.txt|tail -n +2|cut -f1,2|grep X11|cut -f1)
+
+# move VT1 species into folder, note that private_T1889_metawrap_bin.7 is present in both communities
+while read sample;do 
+	mv ${sample}.xml VT1/;
+done< <(less ../lichen_metadata_metaGEM.txt|tail -n +2|cut -f1,2|grep VT1|cut -f1)
+```
+
+## 🍄 Eukaryotic models
+
+TBC by @arianccbasile
+
+### 4. Generate models
+
+## 🥠 Simulation & visualization
+
+### 5. VT1 models for SMETANA simulations
+
+```bash
+# put bacterial + eukaryotic models in foldr for VT1
+while read model;do 
+	mv ${model}.xml bacteria/;
+done< <(less ../../lichen_metadata_metaGEM.txt |cut -f1,2,7|grep bacteria|grep VT1|cut -f1)
+
+# SMETANA 
+for i in {1..20}; do 
+	echo "Running simulation $i out of 20 ... "; 
+	smetana --flavor fbc2 -o sim_${i} -v -d --zeros --molweight *.xml;
+done
+```
+
+### 5. X11 models for SMETANA simulations
+
+```bash
+# put bacterial models in foldr for X11
+while read model;do 
+	mv ${model}.xml bacteria/;
+done< <(less ../../lichen_metadata_metaGEM.txt |cut -f1,2,7|grep bacteria|grep X11|cut -f1)
+
+# SMETANA 
+for i in {1..20}; do 
+	echo "Running simulation $i out of 20 ... "; 
+	smetana --flavor fbc2 -o sim_${i} -v -d --zeros --molweight *.xml;
+done
+```
+
+### 6. Summarize SMETANA simulations
+
+```bash
+cd lichen/gramneg_nogf/VT1/bacteria # summarize VT1 simulations
+while read sim;do 
+	var=$(echo $sim|sed 's/_detailed.tsv//g');
+	paste $sim|sed "s/^all/$var/g"|grep -v community;
+done< <(ls|grep _detailed.tsv)|sed 's/minimal/VT1/g' >> ../detailed_summary.tsv
+
+cd lichen/gramneg_nogf/X11/bacteria # summarize X11 simulations
+while read sim;do 
+	var=$(echo $sim|sed 's/_detailed.tsv//g');
+	paste $sim|sed "s/^all/$var/g"|grep -v community;
+done< <(ls|grep _detailed.tsv)|sed 's/minimal/X11/g' >> ../detailed_summary.tsv
+
+cd lichen/gramneg_nogf/ # combine into gramneg_detailed.tsv file
+while read file;do 
+	paste $file;
+done< <(find . -name "detailed_summary.tsv") >> gramneg_detailed.tsv
+```
+
+### 7. Manipulate data and plot in R: visualize interactions with average SMETANA score ≥ 0.75 across simulations
+
+```r
+# load libraries
+library(tidyverse)
+library(ggalluvial)
+
+# load data
+lichen_smetana = read.delim("gramneg_detailed.tsv")
+lichen_meta = read.delim("lichen_metadata_metaGEM.tsv") %>% mutate(receiver_taxonomy=genus,receiver=Genome,donor_taxonomy=genus,donor=Genome)
+bigg_mets = read.delim("bigg_classes.tsv")
+
+# manipulate data to summarize across simulations by calculating mean, sd, and median
+lichen_smetana %>% 
+  group_by(medium,receiver,donor,compound) %>% 
+  summarize(smet_ave=mean(smetana),smet_sd=sd(smetana),smet_med=median(smetana)) -> lichen_df
+
+ggplot(lichen_df %>% 
+         mutate(compound = gsub("M_","",compound),compound = gsub("_e","",compound)) %>%
+         left_join(.,lichen_meta%>%select(receiver,receiver_taxonomy)) %>% 
+         left_join(.,lichen_meta%>%select(donor,donor_taxonomy)) %>%  
+         left_join(.,bigg_mets) %>%
+         filter(smet_ave>= 0.75) %>%
+         mutate(category=ifelse(smet_ave>=0.7,"high",
+                                ifelse(smet_ave<0.7&smet_ave>0.4,"medium","low"))),
+       aes(axis1 = donor_taxonomy, axis2 = name, axis3 = receiver_taxonomy,
+           y = smet_ave)) +
+    scale_x_discrete(limits = c("Donor", "Metabolite", "Reciever")) +
+    xlab("Interaction") +
+    geom_alluvium(aes(fill = name)) +
+    geom_stratum(width=0.3) +
+    theme_minimal() + geom_text(stat = "stratum", aes(label = after_stat(stratum)),min.y=0.2)+theme_bw() + 
+    theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.line.y = element_blank(),axis.ticks.y = element_blank(),axis.text.y = element_blank(),axis.title.y = element_blank(),axis.line.x = element_blank(),axis.ticks.x = element_blank(),legend.position = "none") + facet_wrap(~medium)
+
+ggsave("lichen_bacteria_smetana.pdf",height = 10,width = 18)
+```
+
