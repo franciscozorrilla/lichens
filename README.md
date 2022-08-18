@@ -287,7 +287,6 @@ medium["EX_xylb_e"] = 0.0
 model.medium = medium
 max_growth = model.slim_optimize()
 ```
-Repeat, otherwise. 
 
 ### 4. Copy models into X11 & VT1 subfolders
 
