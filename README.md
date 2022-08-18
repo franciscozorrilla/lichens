@@ -93,7 +93,50 @@ done< <(less ../lichen_metadata_metaGEM.txt|tail -n +2|cut -f1,2|grep VT1|cut -f
 
 ## 🍄 Eukaryotic models
 
-TBC by @arianccbasile
+### 1. Get ORF-annotated protein files
+
+The provided genomes were gzipped DNA fasta files. First we gunzipped them and then use each dna fasta file (.fa) to generate a protein fasta file (.faa)
+####1.A For algal genomes
+Run GeneMarkES with option --ES
+```bash
+# get ORF fasta files
+for file in $(ls directory_algae);do 
+	gmes_petap.pl --sequence $file --ES;
+done
+```
+####1.B For fungal genomes
+Run GeneMarkES with options --ES --fungus
+```bash
+# get ORF fasta files
+for file in $(ls directory_fungi);do 
+	gmes_petap.pl --sequence $file --ES --fungus;
+done
+```
+###2. Generate templates for metabolic reconstructions
+####2.A For algae
+Join together the reactions of [AlgaGem](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3287588/), [iRC1080](https://pubmed.ncbi.nlm.nih.gov/21811229/) and [iSynCJ816](https://www.sciencedirect.com/science/article/pii/S2211926416304490?via%3Dihub) to create your reference
+
+```python
+#create reference
+
+reference_algae = cobra.Model("reference_algae.xml.gz")
+for file_model in os.listdir("./reconstructions/sbml/"):
+    model=cobra.io.read_sbml_model("./reconstructions/sbml/"+file_model)
+    for reaction in model.reactions:
+        reference_algae.add_reactions([reaction])
+        
+#write reference model in a file
+cobra.io.write_sbml_model(reference_algae,"reference_algae.xml")
+```
+####2.B For fungi
+Use [iMM904](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2679711/) as reference
+
+####3
+Generate models with carveme using --reference with the respective references and for algae --universe cyanobacteria
+
+####3.A
+Check consistency of algal models and photosynthesis pathways based on [iSyn811]()
+
 
 ### 4. Generate models and copy into X11 & VT1 subfolders
 
