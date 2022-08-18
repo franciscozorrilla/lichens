@@ -1,5 +1,5 @@
 # Metabolic modeling of lichen metagenomes
-Lichens are complex symbiotic assemblies of microorganisms. On the 28th of March 2022 we received [22 selected metagenome assembled genomes](https://github.com/franciscozorrilla/lichens/tree/main/data/MAGs) (MAGs) representing 2 metagenomic communities (VT1, X11). Along with @arianccbasile we reconstructed (genome scale metabolic models)[https://github.com/franciscozorrilla/lichens/tree/main/data/GEMs] (GEMs) and carried out flux balance analysis (FBA) based simulations for the two lichen communities.
+Lichens are complex symbiotic assemblies of microorganisms. On the 28th of March 2022 we received [22 selected metagenome assembled genomes](https://github.com/franciscozorrilla/lichens/tree/main/data/MAGs) (MAGs) representing 2 metagenomic communities (VT1, X11). Along with @arianccbasile we reconstructed [genome scale metabolic models](https://github.com/franciscozorrilla/lichens/tree/main/data/GEMs) (GEMs) and carried out flux balance analysis (FBA) based simulations for the two lichen communities.
 
 ```
 Genome	metagenome_ID	metagenomes_sample_name	depth_coverage	completeness	contamination	domain	phylum	order	family	genus	full_taxonomy_bacteria	gram_stain
