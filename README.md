@@ -110,7 +110,7 @@ for i in {1..20}; do
 	smetana --flavor fbc2 -o sim_${i} -v -d --zeros --molweight *.xml;
 done
 
-cd ../VT1/
+cd X11/
 for i in {1..20}; do 
 	echo "Running simulation $i out of 20 ... "; 
 	smetana --flavor fbc2 -o sim_${i} -v -d --zeros --molweight *.xml;
