@@ -143,7 +143,7 @@ done< <(ls|grep _detailed.tsv)|sed 's/minimal/X11/g' >> ../detailed_summary.tsv
 cd lichen/gramneg_nogf/ # combine into gramneg_detailed.tsv file
 while read file;do 
 	paste $file;
-done< <(find . -name "detailed_summary.tsv") >> gramneg_detailed.tsv
+done< <(find . -name "detailed_summary.tsv") >> smetana_detailed.tsv
 ```
 
 ### 7. Manipulate data and plot in R: visualize interactions with average SMETANA score ≥ 0.75 across simulations
@@ -154,8 +154,8 @@ library(tidyverse)
 library(ggalluvial)
 
 # load data
-lichen_smetana = read.delim("gramneg_detailed.tsv")
-lichen_meta = read.delim("lichen_metadata_metaGEM.tsv") %>% mutate(receiver_taxonomy=genus,receiver=Genome,donor_taxonomy=genus,donor=Genome)
+lichen_smetana = read.delim("smetana_detailed.tsv")
+lichen_meta = read.delim("metadata.tsv") %>% mutate(receiver_taxonomy=genus,receiver=Genome,donor_taxonomy=genus,donor=Genome)
 bigg_mets = read.delim("bigg_classes.tsv")
 
 # manipulate data to summarize across simulations by calculating mean, sd, and median
@@ -180,6 +180,7 @@ ggplot(lichen_df %>%
     theme_minimal() + geom_text(stat = "stratum", aes(label = after_stat(stratum)),min.y=0.2)+theme_bw() + 
     theme(panel.border = element_blank(), panel.grid.major = element_blank(),panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),axis.line.y = element_blank(),axis.ticks.y = element_blank(),axis.text.y = element_blank(),axis.title.y = element_blank(),axis.line.x = element_blank(),axis.ticks.x = element_blank(),legend.position = "none") + facet_wrap(~medium)
 
-ggsave("lichen_bacteria_smetana.pdf",height = 10,width = 18)
+ggsave("lichen_v3_smetana.pdf",height = 10,width = 18)
 ```
 
+👉 [Predicted interactions](https://github.com/franciscozorrilla/lichens/blob/main/figures/lichen_v3_smetana.pdf)
