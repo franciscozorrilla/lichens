@@ -41,7 +41,7 @@ Bacterial species are only defined up to genus level of taxonomy, perhaps sugges
 
 VT1 seems to be more diverse in terms of bacterial composition compared to X11. In particular, bin private_VT1_metawrap_bin.2 (belonging to genus CAHJWO01) is a member of the Verrucomicrobiota phylum and is found only in community VT1. Furthermore, VT1 contains an additional 3 acidobacteriota species compared to X11. VT1 also contains an additional Cholorphyta genome, while X11 contains an additional Proteobacteria species.
 
-[lichen_taxonomy.pdf](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/8ffd3d4f-3723-4fe0-ba43-830c897d2261/lichen_taxonomy.pdf)
+[lichen_taxonomy.pdf](https://github.com/franciscozorrilla/lichens/blob/main/figures/lichen_taxonomy.pdf)
 
 ## 📊 Completeness & depth of coverage
 
@@ -49,4 +49,4 @@ All MAGs meet the medium quality (MQ) threshold of completeness ≥ 50% & contam
 
 X11 appears to be heavily dominated by the fungal species, which shows an ~2-fold increase in the depth of coverage compared to community VT1. Although X11 contains a single Acidobacteriota species, this community member has more than twice the depth of coverage of all Acideobacteriota species in community VT1.
 
-[lichen_metadata.pdf](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/e5ff4699-40e8-49f9-9c78-b0b926ff1a21/lichen_metadata.pdf)
+[lichen_metadata.pdf](https://github.com/franciscozorrilla/lichens/blob/main/figures/lichen_metadata.pdf)
