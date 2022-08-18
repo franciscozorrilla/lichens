@@ -96,7 +96,7 @@ done< <(less ../lichen_metadata_metaGEM.txt|tail -n +2|cut -f1,2|grep VT1|cut -f
 ### 1. Get ORF-annotated protein files
 
 The provided genomes were gzipped DNA fasta files. First we gunzipped them and then use each dna fasta file (.fa) to generate a protein fasta file (.faa)
-####1.A For algal genomes
+#### 1.A For algal genomes
 Run GeneMarkES with option --ES
 ```bash
 # get ORF fasta files
@@ -104,7 +104,7 @@ for file in $(ls directory_algae);do
 	gmes_petap.pl --sequence $file --ES;
 done
 ```
-####1.B For fungal genomes
+#### 1.B For fungal genomes
 Run GeneMarkES with options --ES --fungus
 ```bash
 # get ORF fasta files
@@ -112,8 +112,8 @@ for file in $(ls directory_fungi);do
 	gmes_petap.pl --sequence $file --ES --fungus;
 done
 ```
-###2. Generate templates for metabolic reconstructions
-####2.A For algae
+### 2. Generate templates for metabolic reconstructions
+#### 2.A For algae
 Join together the reactions of [AlgaGem](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3287588/), [iRC1080](https://pubmed.ncbi.nlm.nih.gov/21811229/) and [iSynCJ816](https://www.sciencedirect.com/science/article/pii/S2211926416304490?via%3Dihub) to create your reference
 
 ```python
@@ -128,17 +128,168 @@ for file_model in os.listdir("./reconstructions/sbml/"):
 #write reference model in a file
 cobra.io.write_sbml_model(reference_algae,"reference_algae.xml")
 ```
-####2.B For fungi
+#### 2.B For fungi
 Use [iMM904](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2679711/) as reference
 
-####3
+#### 3. Generate models
 Generate models with carveme using --reference with the respective references and for algae --universe cyanobacteria
 
-####3.A
-Check consistency of algal models and photosynthesis pathways based on [iSyn811]()
+#### 3.A Check consistency of algal models 
+Check consistency of algal models and photosynthesis pathways based on [iSyn811](https://link.springer.com/article/10.1186/1752-0509-4-156), check presence of key reactions
+
+```python
+import cobra
+%config Completer.use_jedi = False
+import reframed
+reaz_photosynthesis= ['R_EX_photonVis_e: photonVis_e <->',
+                    'R_PSIIum: 3.9996 h_c + 2.0 h2o_u + 1.9998 pq_um + 4.0 p680_exc_um + 0.0004 ps2d1_um <-> 4.0 h_u + o2_u + 1.9998 pqh2_um + 4.0 p680_um + 0.0004 ps2d1_exc_um',
+                    'R_PSIIa: e680_u + p680_u + qa_u <-> p680p_u + qan_u',
+                    'R_PSII: 2.0 h_c + pq_u + h2o_u + 2.0 photon_c <-> 2.0 h_u + pqh2_u + 0.5 o2_u',
+                    'R_PSII_u: 2.0 pq_u + 2.0 h2o_u + 4.0 h_h + 4.0 photon_h <-> 4.0 h_u + 2.0 pqh2_u + o2_u',
+                    'R_PSIum: 0.01 o2_c + 0.99 fdxox_c + pcrd_u + p700_exc_um <-> 0.01 o2s_c + 0.99 fdxrd_c + pcox_u + p700_um',
+                    'R_PSIa: fdxo_2_2_c + e700_u + p700_u <-> fdxrd_c + p700p_u',
+                    'R_PSI_u: 2.0 pcrd_u + 2.0 fdxox_h + 2.0 photon_h <-> 2.0 pcox_u + 2.0 fdxrd_h']
+for i in reaz_photosynthesis:
+    model.add_reaction_from_str(i)
+model.update
+```
 
 
-### 4. Generate models and copy into X11 & VT1 subfolders
+Change the medium to remove carbon sources except CO2 and test the auxotrophy
+```python
+medium
+medium["EX_2m35mdntha_e"] = 0.0
+medium["EX_2mbald_e"] = 0.0
+medium["EX_34dhpac_e"] = 0.0
+medium["EX_34dhphe_e"] = 0.0
+medium["EX_35dnta_e"] = 0.0
+medium["EX_4abut_e"] = 0.0
+medium["EX_4abz_e"] = 0.0
+medium["EX_4hba_e"] = 0.0
+medium["EX_Larab_e"] = 0.0
+medium["EX_R_3hdd6e_e"] = 0.0
+medium["EX_abt__L_e"] = 0.0
+medium["EX_abt_e"] = 0.0
+medium["EX_ac_e"] = 0.0
+medium["EX_acald_e"] = 0.0
+medium["EX_acgam1p_e"] = 0.0
+medium["EX_actn__R_e"] = 0.0
+medium["EX_akg_e"] = 0.0
+medium["EX_ala__D_e"] = 0.0
+medium["EX_ala__L_e"] = 0.0
+medium["EX_alaala_e"] = 0.0
+medium["EX_alahis_e"] = 0.0
+medium["EX_LalaLglu_e"] = 0.0
+medium["EX_alaleu_e"] = 0.0
+medium["EX_alathr_e"] = 0.0
+medium["EX_alatrp_e"] = 0.0
+medium["EX_arab__D_e"] = 0.0
+medium["EX_arab__L_e"] = 0.0
+medium["EX_araban__L_e"] = 0.0
+medium["EX_arg__L_e"] = 0.0
+medium["EX_asn__L_e"] = 0.0
+medium["EX_bz_e"] = 0.0
+medium["EX_chol_e"] = 0.0
+medium["EX_chor_e"] = 0.0
+medium["EX_cit_e"] = 0.0
+medium["EX_cmcbtt_e"] = 0.0
+medium["EX_dca_e"] = 0.0
+medium["EX_ddca_e"] = 0.0
+medium["EX_dha_e"] = 0.0
+medium["EX_drib_e"] = 0.0
+medium["EX_enter_e"] = 0.0
+medium["EX_etha_e"] = 0.0
+medium["EX_fe3pyovd_kt_e"] = 0.0
+medium["EX_feenter_e"] = 0.0
+medium["EX_fol_e"] = 0.0
+medium["EX_for_e"] = 0.0
+medium["EX_frmd_e"] = 0.0
+medium["EX_fru_e"] = 0.0
+medium["EX_fuc_e"] = 0.0
+medium["EX_fum_e"] = 0.0
+medium["EX_gal_bD_e"] = 0.0
+medium["EX_gal_e"] = 0.0
+medium["EX_galt_e"] = 0.0
+medium["EX_glcur_e"] = 0.0
+medium["EX_gln__L_e"] = 0.0
+medium["EX_glu__L_e"] = 0.0
+medium["EX_glucan4_e"] = 0.0
+medium["EX_glucan6_e"] = 0.0
+medium["EX_gly_e"] = 0.0
+medium["EX_gly_tyr_e"] = 0.0
+medium["EX_glyc3p_e"] = 0.0
+medium["EX_glygln_e"] = 0.0
+medium["EX_glyglu_e"] = 0.0
+medium["EX_glymet_e"] = 0.0
+medium["EX_glyphe_e"] = 0.0
+medium["EX_glyser_e"] = 0.0
+medium["EX_gthox_e"] = 0.0
+medium["EX_gthrd_e"] = 0.0
+medium["EX_gua_e"] = 0.0
+medium["EX_hco3_e"] = 0.0
+medium["EX_hdcea_e"] = 0.0
+medium["EX_hexs_e"] = 0.0
+medium["EX_hisgly_e"] = 0.0
+medium["EX_hishis_e"] = 0.0
+medium["EX_hxa_e"] = 0.0
+medium["EX_hxan_e"] = 0.0
+medium["EX_ind3ac_e"] = 0.0
+medium["EX_indole_e"] = 0.0
+medium["EX_inost_e"] = 0.0
+medium["EX_lcts_e"] = 0.0
+medium["EX_leuleu_e"] = 0.0
+medium["EX_lmn2_e"] = 0.0
+medium["EX_lnlc_e"] = 0.0
+medium["EX_lys__L_e"] = 0.0
+medium["EX_mal__L_e"] = 0.0
+medium["EX_malthx_e"] = 0.0
+medium["EX_man_e"] = 0.0
+medium["EX_melib_e"] = 0.0
+medium["EX_meoh_e"] = 0.0
+medium["EX_octa_e"] = 0.0
+medium["EX_orn_e"] = 0.0
+medium["EX_orot_e"] = 0.0
+medium["EX_pacald_e"] = 0.0
+medium["EX_pea_e"] = 0.0
+medium["EX_peamn_e"] = 0.0
+medium["EX_pheme_e"] = 0.0
+medium["EX_pnto__R_e"] = 0.0
+medium["EX_ppap_e"] = 0.0
+medium["EX_ppoh_e"] = 0.0
+medium["EX_pro__L_e"] = 0.0
+medium["EX_progly_e"] = 0.0
+medium["EX_ptrc_e"] = 0.0
+medium["EX_ptsla_e"] = 0.0
+medium["EX_pyovd_kt_e"] = 0.0
+medium["EX_raffin_e"] = 0.0
+medium["EX_rib__D_e"] = 0.0
+medium["EX_salc_e"] = 0.0
+medium["EX_salchs4_e"] = 0.0
+medium["EX_sbt__D_e"] = 0.0
+medium["EX_spmd_e"] = 0.0
+medium["EX_succ_e"] = 0.0
+medium["EX_taur_e"] = 0.0
+medium["EX_thm_e"] = 0.0
+medium["EX_thym_e"] = 0.0
+medium["EX_tnt_e"] = 0.0
+medium["EX_tol_e"] = 0.0
+medium["EX_ttdcea_e"] = 0.0
+medium["EX_tyr__L_e"] = 0.0
+medium["EX_uaccg_e"] = 0.0
+medium["EX_ura_e"] = 0.0
+medium["EX_urea_e"] = 0.0
+medium["EX_vacc_e"] = 0.0
+medium["EX_xan_e"] = 0.0
+medium["EX_xyl3_e"] = 0.0
+medium["EX_xyl__D_e"] = 0.0
+medium["EX_xylb_e"] = 0.0
+
+model.medium = medium
+max_growth = model.slim_optimize()
+```
+Repeat, otherwise. 
+
+### 4. Copy models into X11 & VT1 subfolders
 
 ## 🥠 Simulation & visualization
 
