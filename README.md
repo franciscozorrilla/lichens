@@ -57,6 +57,8 @@ X11 appears to be heavily dominated by the fungal species, which shows an ~2-fol
 
 ### 1. Get ORF-annotated protein files
 
+The provided genomes were gzipped DNA fasta files. First we gunzipped them and then use each dna fasta file (.fa) to generate a protein fasta file (.faa)
+
 ```bash
 # get ORF fasta files
 while read file;do 
@@ -65,6 +67,8 @@ done < <(ls|grep fa)
 ```
 
 ### 2. Generate models without any media-based gapfilling, using the gram negative template
+
+We then use the ORF annotated protein fasta files to generate genome scale metabolic models using CarveMe v.1.5.1. Since all bacterial genomes are gram negative, we will use the gram negative universal template model.
 
 ```bash
 # get GEMs w/o gapfilling gramneg model
@@ -91,34 +95,22 @@ done< <(less ../lichen_metadata_metaGEM.txt|tail -n +2|cut -f1,2|grep VT1|cut -f
 
 TBC by @arianccbasile
 
-### 4. Generate models
+### 4. Generate models and copy into X11 & VT1 subfolders
 
 ## 🥠 Simulation & visualization
 
-### 5. VT1 models for SMETANA simulations
+### 5. Run SMETANA simulations
+
+We run 20 SMETANA simulations for each community. We use the `-d` flag to run the detailed interactions algorithm, `-v` for verbose output, `--molweight` to use molecular weight minimization to calculate a community-specific minimal media composition in order to predict metabolic interactions between community memebers in that media, and `--zeros` to include values for all possible metabolite exchanges.
 
 ```bash
-# put bacterial + eukaryotic models in foldr for VT1
-while read model;do 
-	mv ${model}.xml bacteria/;
-done< <(less ../../lichen_metadata_metaGEM.txt |cut -f1,2,7|grep bacteria|grep VT1|cut -f1)
-
-# SMETANA 
+cd VT1/
 for i in {1..20}; do 
 	echo "Running simulation $i out of 20 ... "; 
 	smetana --flavor fbc2 -o sim_${i} -v -d --zeros --molweight *.xml;
 done
-```
 
-### 5. X11 models for SMETANA simulations
-
-```bash
-# put bacterial models in foldr for X11
-while read model;do 
-	mv ${model}.xml bacteria/;
-done< <(less ../../lichen_metadata_metaGEM.txt |cut -f1,2,7|grep bacteria|grep X11|cut -f1)
-
-# SMETANA 
+cd ../VT1/
 for i in {1..20}; do 
 	echo "Running simulation $i out of 20 ... "; 
 	smetana --flavor fbc2 -o sim_${i} -v -d --zeros --molweight *.xml;
@@ -128,19 +120,19 @@ done
 ### 6. Summarize SMETANA simulations
 
 ```bash
-cd lichen/gramneg_nogf/VT1/bacteria # summarize VT1 simulations
+cd VT1/ # summarize VT1 simulations
 while read sim;do 
 	var=$(echo $sim|sed 's/_detailed.tsv//g');
 	paste $sim|sed "s/^all/$var/g"|grep -v community;
 done< <(ls|grep _detailed.tsv)|sed 's/minimal/VT1/g' >> ../detailed_summary.tsv
 
-cd lichen/gramneg_nogf/X11/bacteria # summarize X11 simulations
+cd X11/ # summarize X11 simulations
 while read sim;do 
 	var=$(echo $sim|sed 's/_detailed.tsv//g');
 	paste $sim|sed "s/^all/$var/g"|grep -v community;
 done< <(ls|grep _detailed.tsv)|sed 's/minimal/X11/g' >> ../detailed_summary.tsv
 
-cd lichen/gramneg_nogf/ # combine into gramneg_detailed.tsv file
+cd .. 
 while read file;do 
 	paste $file;
 done< <(find . -name "detailed_summary.tsv") >> smetana_detailed.tsv
